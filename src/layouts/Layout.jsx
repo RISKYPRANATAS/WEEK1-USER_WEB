@@ -2,7 +2,8 @@ import * as React from "react";
 import * as Router from "react-router-dom";
 import TopBarHeader from "../components/Header/TopBarHeader";
 import Header from "../components/Header/Header";
-import { Menu } from "lucide-react";
+import createHost from "cross-domain-storage/host";
+import { Menu, ChevronDown } from "lucide-react";
 import Footer from "../components/Footer/Footer";
 import BottomBarFooter from "../components/Footer/BottomBarFooter";
 
@@ -26,10 +27,33 @@ const menus = [
 
 export const Layout = () => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const [isDropdown, setIsDropdown] = React.useState(false);
   const location = Router.useLocation();
   const [isNotMobile, setIsNotMobile] = React.useState(
     window.innerWidth >= 640
   );
+
+  const handleDropdown = (value) => {
+    setIsDropdown(value);
+  };
+
+  React.useEffect(() => {
+    const storageHost = createHost([
+      {
+        origin: "http://localhost:5174",
+        allowedMethods: ["get"],
+      },
+    ]);
+
+    return () => {
+      storageHost.close();
+    };
+  }, []);
+
+  const handleRoleSelection = (role) => {
+    localStorage.setItem("role", role);
+    window.location.href = "http://localhost:5174";
+  };
 
   React.useEffect(() => {
     const handleResize = () => {
@@ -83,7 +107,42 @@ export const Layout = () => {
                   {menu.name}
                 </a>
               ))}
-              {!isNotMobile && <a href="/">Masuk</a>}
+              {!isNotMobile && (
+                <>
+                  <div
+                    className="flex items-center justify-between cursor-pointer"
+                    onClick={() => handleDropdown(!isDropdown)}
+                  >
+                    <span>Masuk</span>
+                    <ChevronDown
+                      size={20}
+                      className={`${
+                        isDropdown
+                          ? "rotate-180 transition-all"
+                          : "transition-all"
+                      }`}
+                    />
+                  </div>
+                  {isDropdown && (
+                    <div>
+                      <ul className="flex flex-col gap-y-3">
+                        <div
+                          className="cursor-pointer"
+                          onClick={() => handleRoleSelection("kaprodi")}
+                        >
+                          <span>Kaprodi</span>
+                        </div>
+                        <div
+                          className="cursor-pointer"
+                          onClick={() => handleRoleSelection("dosen")}
+                        >
+                          <span>Dosen</span>
+                        </div>
+                      </ul>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>
